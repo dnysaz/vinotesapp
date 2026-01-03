@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About // ViNotes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #fcfcfd;
+            background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
+            background-size: 30px 30px;
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-slate-100">
+        <div class="mx-auto max-w-5xl px-6 py-4 flex justify-between items-center">
+            <a href="../index.html" class="flex items-center gap-3 group">
+                <div class="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100 transition-transform group-hover:-rotate-6">
+                    <span class="text-white font-black italic text-sm">V.</span>
+                </div>
+                <span class="font-bold text-slate-900 tracking-tighter">Back to Canvas</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="mx-auto max-w-4xl px-6 py-20">
+        <section class="text-center mb-24">
+            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 mb-4 block">Our Philosophy</span>
+            <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tighter mb-8 leading-[1.1]">
+                Less Noise,<br><span class="text-gradient">More Clarity.</span>
+            </h1>
+            <p class="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+                ViNotes was born from a simple need: a digital space that feels as natural as paper but as powerful as the cloud.
+            </p>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-32">
+            <div>
+                <h3 class="font-bold text-slate-900 text-xl mb-4">Privacy First</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Your notes belong to you. We don't have a central database; your data lives in your browser and your personal Google Drive.</p>
+            </div>
+            <div>
+                <h3 class="font-bold text-slate-900 text-xl mb-4">Pure Focus</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">No complex folders, no infinite nested sub-pages. Just a clean canvas to capture thoughts before they disappear.</p>
+            </div>
+            <div>
+                <h3 class="font-bold text-slate-900 text-xl mb-4">Open Web</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Built with modern web technologies to be fast, responsive, and accessible from anywhere without a heavy app install.</p>
+            </div>
+        </section>
+
+        <section class="bg-white border border-slate-100 rounded-[40px] p-8 md:p-16 shadow-xl shadow-slate-200/50 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-50"></div>
+            
+            <div class="relative z-10">
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-6">Designed for Modern Productivity</h2>
+                <div class="space-y-6 text-slate-600 leading-relaxed">
+                    <p>
+                        In a world filled with cluttered productivity tools, we believe that the best interface is the one that disappears. ViNotes is designed to be a "Zero-Friction" environment.
+                    </p>
+                    <p>
+                        Whether you are a developer jotting down snippets, a writer capturing hooks, or a student organizing thoughts, our goal is to provide a canvas that stays out of your way.
+                    </p>
+                </div>
+                
+                <div class="mt-12 flex items-center gap-6">
+                    <div class="flex -space-x-3">
+                        <div class="w-10 h-10 rounded-full border-2 border-white bg-indigo-500 flex items-center justify-center text-white text-[10px] font-bold">V1</div>
+                        <div class="w-10 h-10 rounded-full border-2 border-white bg-slate-800 flex items-center justify-center text-white text-[10px] font-bold">2025</div>
+                    </div>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Built with Passion for the Creative Mind</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="mt-32 text-center border-t border-slate-100 pt-12 pb-12">
+            <p class="text-slate-400 text-sm mb-4 uppercase tracking-[0.2em] font-bold">ViNotes // About</p>
+            <p class="text-slate-300 text-[10px]">© 2026 ViNotes. All rights reserved.</p>
+        </footer>
+    </main>
+
+</body>
+</html>

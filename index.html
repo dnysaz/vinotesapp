@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViNotes // Modern Digital Canvas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script async defer src="https://accounts.google.com/gsi/client"></script>
+    <script async defer src="https://apis.google.com/js/api.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #fcfcfd; 
+            --accent: #6366f1;
+            --card-bg: #ffffff;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.03) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.03) 0px, transparent 50%),
+                radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
+            background-size: 50% 50%, 50% 50%, 30px 30px;
+            color: #0f172a;
+        }
+
+        /* Glassmorphism Navigation */
+        nav {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Smooth Card Elevation */
+        .paper-stack {
+            background: var(--card-bg);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 24px;
+        }
+
+        .paper-stack:hover { 
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.08);
+            border-color: var(--accent);
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            background: rgba(2, 6, 23, 0.4);
+            backdrop-filter: blur(6px);
+            display: none;
+        }
+        .active-modal { display: flex; }
+
+        /* Custom Scrollbar */
+        #note-content::-webkit-scrollbar { width: 4px; }
+        #note-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .add-card-btn {
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px dashed #e2e8f0;
+            color: #94a3b8;
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
+        .add-card-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: #ffffff;
+            transform: scale(1.02);
+        }
+
+        [contenteditable]:empty:before {
+            content: attr(placeholder);
+            color: #94a3b8;
+            cursor: text;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-modal { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <nav class="sticky top-0 z-40 border-b border-slate-100/50">
+        <div class="mx-auto max-w-7xl px-6 md:px-12 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100 rotate-3 transition-transform hover:rotate-0">
+                    <span class="text-white font-black italic text-xl">V.</span>
+                </div>
+                <h1 class="font-extrabold text-xl tracking-tighter text-slate-900 leading-none">Vinotes<span class="text-indigo-600">App</span></h1>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <button onclick="destroy_session()" class="hidden md:block text-[10px] font-bold text-slate-400 hover:text-red-500 uppercase tracking-[0.2em] transition-colors">
+                    Reset Session
+                </button>
+                <button id="export-gdrive" class="text-xs font-bold bg-slate-900 text-white px-6 py-3 rounded-2xl hover:bg-indigo-600 flex items-center gap-3 shadow-lg shadow-slate-200 transition-all active:scale-95">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" class="w-4 h-4 brightness-200">
+                    Sync Cloud
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <main id="board" class="mx-auto max-w-7xl p-4 md:p-12 grid grid-cols-2 md:flex md:flex-wrap gap-4 md:gap-8 items-start">
+    </main>
+
+    <div id="editor-overlay" class="modal-overlay fixed inset-0 z-50 items-center justify-center p-4" onclick="closeEditor(event)">
+        <div class="bg-white w-full max-w-4xl h-[85vh] rounded-[32px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] p-8 md:p-16 flex flex-col relative animate-modal" onclick="event.stopPropagation()">
+            
+            <div class="flex items-center justify-between mb-10">
+                <div class="flex items-center gap-3 group cursor-pointer">
+                    <div class="relative flex items-center">
+                        <input type="checkbox" id="note-important" class="peer w-5 h-5 opacity-0 absolute cursor-pointer">
+                        <div class="w-5 h-5 border-2 border-slate-200 rounded-lg peer-checked:bg-red-500 peer-checked:border-red-500 transition-all"></div>
+                        <svg class="w-3 h-3 text-white absolute left-1 hidden peer-checked:block pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <label for="note-important" class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-slate-600 transition-colors cursor-pointer">Mark as Pinned</label>
+                </div>
+                <button onclick="closeEditor()" class="p-2 hover:bg-slate-50 rounded-full transition-colors">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round"></path></svg>
+                </button>
+            </div>
+
+            <input type="text" id="note-title" placeholder="Give it a title..." autofocus
+                   class="text-3xl md:text-5xl font-extrabold outline-none mb-6 placeholder:text-slate-100 text-slate-900 tracking-tight bg-transparent">
+            
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <div id="note-content" contenteditable="true" 
+                     class="flex-1 w-full bg-transparent outline-none text-lg md:text-xl leading-relaxed text-slate-500 overflow-y-auto pr-4" 
+                     placeholder="Start writing something beautiful..."></div>
+            </div>
+
+            <div class="mt-10 pt-8 border-t border-slate-50 flex justify-between items-center">
+                <button id="del-btn" onclick="deleteCurrentNote(event)" class="group flex items-center gap-2 text-slate-300 hover:text-red-500 transition-all active:scale-90">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    <span class="font-bold text-[10px] uppercase tracking-widest">Delete Note</span>
+                </button>
+                <button onclick="closeEditor()" class="px-10 py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all hover:-translate-y-1 active:scale-95">
+                    Save & Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete-confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md hidden items-center justify-center z-[100]" onclick="closeDeleteModal()">
+        <div class="bg-white p-10 rounded-[32px] shadow-2xl max-w-sm w-full mx-4 text-center animate-modal" onclick="event.stopPropagation()">
+            <div class="w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center mx-auto mb-6 rotate-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </div>
+            <h3 class="text-2xl font-black text-slate-800 tracking-tight">Delete Note?</h3>
+            <p class="text-sm text-slate-500 mt-3 leading-relaxed">This action cannot be undone. This note will be permanently removed from your device and the cloud.</p>
+            <div class="flex flex-col gap-3 mt-8">
+                <button onclick="executeDelete()" class="w-full py-4 bg-rose-500 text-white font-bold rounded-2xl hover:bg-rose-600 shadow-lg shadow-rose-100 uppercase text-[11px] tracking-widest">Delete Permanently</button>
+                <button onclick="closeDeleteModal()" class="w-full py-4 bg-slate-50 text-slate-400 font-bold rounded-2xl hover:bg-slate-100 uppercase text-[10px] tracking-widest">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sync-ask-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md hidden items-center justify-center z-[100]">
+        <div class="bg-white p-10 rounded-[32px] shadow-2xl max-w-sm w-full mx-4 text-center animate-modal">
+             <div class="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                </svg>
+            </div>
+            <h3 class="text-2xl font-black text-slate-800 tracking-tight">Enable Cloud Sync</h3>
+            <p class="text-sm text-slate-500 mt-3 leading-relaxed">Keep your thoughts safe and accessible across all your devices with Google Drive integration.</p>
+            <div class="flex flex-col gap-3 mt-8">
+                <button onclick="handleCloudChoice()" class="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 tracking-widest uppercase text-[11px]">Connect Google Drive</button>
+                <button onclick="handleGuestChoice()" class="w-full py-4 bg-slate-50 text-slate-400 font-bold rounded-2xl uppercase text-[10px] tracking-widest">Continue as Guest</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="destroy-confirm-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[110]">
+        <div class="bg-white p-10 rounded-[32px] shadow-2xl max-w-sm w-full mx-4 text-center animate-modal">
+            <h3 class="text-2xl font-black text-rose-500 tracking-tight">Security Warning</h3>
+            <p class="text-sm text-slate-500 mt-3 leading-relaxed">You are about to terminate this session. All local data and un-synced notes will be <span class="font-bold text-slate-800">permanently lost</span>.</p>
+            <div class="flex flex-col gap-3 mt-8">
+                <button onclick="execute_destroy()" class="w-full py-4 bg-rose-500 text-white font-bold rounded-2xl shadow-xl shadow-rose-100 tracking-widest uppercase text-[11px]">Destroy Session</button>
+                <button onclick="save_and_cancel_destroy()" class="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl uppercase text-[11px] shadow-lg shadow-indigo-100">Backup to Drive first</button>
+                <button onclick="closeDestroyModal()" class="mt-2 text-[10px] font-bold text-slate-300 hover:text-slate-500 uppercase tracking-widest transition-colors">Go Back</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="fixed bottom-0 right-0 h-[30px] flex items-center gap-6 px-10 z-30 bg-white/50 backdrop-blur-sm rounded-tl-2xl border-t border-l border-slate-100">
+        <a href="/pages/help.html" class="text-[9px] font-bold text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-colors">Help</a>
+        <a href="/pages/about.html" class="text-[9px] font-bold text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-colors">About</a>
+        <a href="/pages/t&c.html" class="text-[9px] font-bold text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-colors">Terms</a>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+    <script src="command.js"></script>
+
+</body>
+</html>

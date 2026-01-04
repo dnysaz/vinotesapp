@@ -1,0 +1,1 @@
+echo "const CONFIG = { API_KEY: '$API_KEY', CLIENT_ID: '$CLIENT_ID' };" > config.js

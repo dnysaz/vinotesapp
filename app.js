@@ -715,18 +715,54 @@ function renderAddCard() {
 }
 
 
+// function openEditor(id = null) {
+//     currentEditingId = id;
+//     if (id) {
+//         const note = notes.find(n => n.id === id);
+//         titleInp.value = note.title; 
+//         contentDiv.innerHTML = mdToHtml(note.content);
+//         document.getElementById('note-important').checked = note.important || false;
+//     } else { 
+//         titleInp.value = ''; 
+//         contentDiv.innerHTML = ''; 
+//         document.getElementById('note-important').checked = false; 
+//     }
+//     overlay.classList.add('active-modal');
+
+//     setTimeout(() => {
+//         titleInp.focus();
+//     }, 50); 
+// }
+
+
 function openEditor(id = null) {
     currentEditingId = id;
+    
+    // Ambil elemen info tanggal yang kita buat di Tahap 2
+    const createdLabel = document.getElementById('info-created');
+    const updatedLabel = document.getElementById('info-updated');
+
     if (id) {
         const note = notes.find(n => n.id === id);
         titleInp.value = note.title; 
         contentDiv.innerHTML = mdToHtml(note.content);
         document.getElementById('note-important').checked = note.important || false;
+
+        // --- TAMBAHAN: ISI DATA TANGGAL ---
+        // Jika note.createdAt belum ada (untuk catatan lama), tampilkan '-'
+        createdLabel.innerText = note.createdAt ? formatSimpleDate(note.createdAt) : 'Legacy Note';
+        updatedLabel.innerText = note.updatedAt ? formatSimpleDate(note.updatedAt) : 'N/A';
+        
     } else { 
         titleInp.value = ''; 
         contentDiv.innerHTML = ''; 
         document.getElementById('note-important').checked = false; 
+
+        // --- TAMBAHAN: DATA TANGGAL BARU ---
+        createdLabel.innerText = 'Now';
+        updatedLabel.innerText = 'New Note';
     }
+
     overlay.classList.add('active-modal');
 
     setTimeout(() => {
@@ -734,10 +770,30 @@ function openEditor(id = null) {
     }, 50); 
 }
 
+
+function formatSimpleDate(isoString) {
+    if (!isoString) return '-';
+    try {
+        const date = new Date(isoString);
+        // Menampilkan: 5 Jan, 12:00
+        return date.toLocaleDateString('id-ID', { 
+            day: 'numeric', 
+            month: 'short', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+    } catch (e) {
+        return '-';
+    }
+}
+
 function saveNote() {
     const title = titleInp.value.trim();
     const contentMd = htmlToMd(contentDiv.innerHTML);
     const isImportant = document.getElementById('note-important').checked;
+
+    const now = new Date().toISOString();
+    const existingNote = currentEditingId ? notes.find(n => n.id === currentEditingId) : null;
     
     if (!title && !contentMd) return;
 
@@ -746,6 +802,8 @@ function saveNote() {
         title, 
         content: contentMd, 
         important: isImportant,
+        createdAt: existingNote ? existingNote.createdAt : now,
+        updatedAt: now,
         driveFileId: currentEditingId ? notes.find(n => n.id === currentEditingId)?.driveFileId : null
     };
 
@@ -754,17 +812,9 @@ function saveNote() {
         notes = notes.filter(n => n.id !== currentEditingId);
     }
     
-    // **PERBAIKAN: TAMBAHKAN CATATAN BARU KE ARRAY, TAPI TIDAK MENGURUTKAN DI SINI**
-    // Urutan akan ditangani di renderBoard()
     notes.push(noteData);
-    
-    // SIMPAN KE LOCALSTORAGE DULU
     localStorage.setItem('vi_notes', JSON.stringify(notes));
-    
-    // **PERBAIKAN: Tutup editor SEBELUM render**
     overlay.classList.remove('active-modal');
-    
-    // Render ulang board
     renderBoard();
 
     // Cek login status
